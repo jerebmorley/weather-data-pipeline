@@ -1,0 +1,54 @@
+name: Data Pipeline ETL
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Run every hour
+  workflow_dispatch:
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root_pass
+          MYSQL_DATABASE: weather_db
+          MYSQL_USER: pipeline_user
+          MYSQL_PASSWORD: pipeline_pass
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+          
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
+          
+      - name: Initialize Database Schema
+        run: |
+          mysql -h 127.0.0.1 -u pipeline_user -ppipeline_pass weather_db < sql/migrations/V1__initial_schema.sql
+          
+      - name: Run Pipeline
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_USER: pipeline_user
+          DB_PASSWORD: pipeline_pass
+          DB_NAME: weather_db
+        run: python src/main.py

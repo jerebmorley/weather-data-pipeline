@@ -1,0 +1,40 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "weather-data-pipeline"
+version = "0.1.0"
+description = "End-to-End Weather Data Pipeline"
+authors = [{name = "Staff Data Engineer"}]
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.31.0",
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+    "sqlalchemy>=2.0.0",
+    "pymysql>=1.1.0",
+    "pandas>=2.1.0",
+    "pyarrow>=14.0.0",
+    "tenacity>=8.2.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "requests-mock>=1.11.0",
+    "ruff>=0.1.0",
+    "sqlfluff>=2.3.0"
+]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --cov=src"
+testpaths = [
+    "tests",
+]
+
+
+[tool.hatch.build.targets.wheel]
+packages = ["src", "config"]
